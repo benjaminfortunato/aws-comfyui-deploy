@@ -148,12 +148,15 @@ class ComfyUIStack(Stack):
 
         admin_construct.add_environments(
             lambda_admin_rule=alb_construct.lambda_admin_rule,
-        )
-
-        # Output
+        )        # Output
 
         CfnOutput(self, "Endpoint", value=auth_construct.application_dns_name)
-        CfnOutput(self, "UserPoolId",
-                  value=auth_construct.user_pool.user_pool_id)
-        CfnOutput(self, "CognitoDomainName",
-                  value=auth_construct.user_pool_custom_domain.domain_name)
+        
+        # Only output Cognito-related values if Cognito is enabled
+        if auth_construct.user_pool:
+            CfnOutput(self, "UserPoolId",
+                    value=auth_construct.user_pool.user_pool_id)
+        
+        if auth_construct.user_pool_custom_domain:
+            CfnOutput(self, "CognitoDomainName",
+                    value=auth_construct.user_pool_custom_domain.domain_name)

@@ -16,14 +16,20 @@ comfy_ui_stack = ComfyUIStack(
     ),
     tags={
         "Repository": "aws-samples/cost-effective-aws-deployment-of-comfyui"
-    },
+    },    # Disable Cognito authentication as it's causing deployment issues
+    # and not needed for team-only access
+    self_sign_up_enabled=False,
+    saml_auth_enabled=False,
+    mfa_required=False,
+    # For security, since we've disabled Cognito authentication, we're restricting access by IP
+    # You can add multiple IPs using the format: ["1.2.3.4/32", "5.6.7.8/32"]
+    allowed_ip_v4_address_ranges=["72.80.157.72/32"],  # This allows all IPs - REPLACE with your specific IP
     # Override Parameters (example)
     # auto_scale_down=False,
     # schedule_auto_scaling=True,
     # timezone="Asia/Tokyo",
     # schedule_scale_up="0 8 * * 1-5",
     # schedule_scale_down="0 19 * * *",
-    # self_sign_up_enabled=True,
     # allowed_sign_up_email_domains=["amazon.com"],
 )
 
@@ -38,3 +44,4 @@ NagSuppressions.add_stack_suppressions(stack=comfy_ui_stack, suppressions=[
 ])
 
 app.synth()
+

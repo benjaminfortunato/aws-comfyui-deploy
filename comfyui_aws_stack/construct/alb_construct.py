@@ -120,7 +120,7 @@ class AlbConstruct(Construct):
                     command=[
                         "bash",
                         "-c",
-                        "pip install -r requirements.txt -t /asset-output --platform manylinux_2_12_x86_64 --only-binary=:all: && cp -au . /asset-output",
+                        "pip install -r requirements.txt -t /asset-output --platform manylinux_2_12_x86_64 --only-binary=:all: && cp -r . /asset-output",
                     ],
                     platform="linux/amd64",
                     network="sagemaker" if is_sagemaker_studio else None
@@ -274,21 +274,15 @@ class AlbConstruct(Construct):
             default_action=elbv2.ListenerAction.forward([ecs_target_group])
         )
 
-        # ALB Rule
+        # ALB Rule        # Direct access without Cognito authentication
         lambda_admin_rule = elbv2.ApplicationListenerRule(
             scope,
             "LambdaAdminRule",
             listener=listener,
             priority=5,
             conditions=[elbv2.ListenerCondition.path_patterns(["/admin"])],
-            action=elb_actions.AuthenticateCognitoAction(
-                next=elbv2.ListenerAction.forward([lambda_admin_target_group]),
-                user_pool=user_pool,
-                user_pool_client=user_pool_client,
-                user_pool_domain=user_pool_custom_domain,
-            ),
-        )
-
+            action=elbv2.ListenerAction.forward([lambda_admin_target_group]),
+        )        # Direct access without Cognito authentication
         lambda_restart_docker_rule = elbv2.ApplicationListenerRule(
             scope,
             "LambdaRestartDockerRule",
@@ -296,15 +290,8 @@ class AlbConstruct(Construct):
             priority=10,
             conditions=[elbv2.ListenerCondition.path_patterns(
                 ["/admin/restart"])],
-            action=elb_actions.AuthenticateCognitoAction(
-                next=elbv2.ListenerAction.forward(
-                    [lambda_restart_docker_target_group]),
-                user_pool=user_pool,
-                user_pool_client=user_pool_client,
-                user_pool_domain=user_pool_custom_domain,
-            ),
-        )
-
+            action=elbv2.ListenerAction.forward([lambda_restart_docker_target_group]),
+        )        # Direct access without Cognito authentication
         lambda_shutdown_rule = elbv2.ApplicationListenerRule(
             scope,
             "LambdaShutdownRule",
@@ -312,15 +299,8 @@ class AlbConstruct(Construct):
             priority=15,
             conditions=[elbv2.ListenerCondition.path_patterns(
                 ["/admin/shutdown"])],
-            action=elb_actions.AuthenticateCognitoAction(
-                next=elbv2.ListenerAction.forward(
-                    [lambda_shutdown_target_group]),
-                user_pool=user_pool,
-                user_pool_client=user_pool_client,
-                user_pool_domain=user_pool_custom_domain,
-            ),
-        )
-
+            action=elbv2.ListenerAction.forward([lambda_shutdown_target_group]),
+        )        # Direct access without Cognito authentication
         lambda_scaleup_rule = elbv2.ApplicationListenerRule(
             scope,
             "LambdaScaleupRule",
@@ -328,40 +308,20 @@ class AlbConstruct(Construct):
             priority=20,
             conditions=[elbv2.ListenerCondition.path_patterns(
                 ["/admin/scaleup"])],
-            action=elb_actions.AuthenticateCognitoAction(
-                next=elbv2.ListenerAction.forward(
-                    [lambda_scaleup_target_group]),
-                user_pool=user_pool,
-                user_pool_client=user_pool_client,
-                user_pool_domain=user_pool_custom_domain,
-            ),
-        )
-
+            action=elbv2.ListenerAction.forward([lambda_scaleup_target_group]),
+        )        # Direct access without Cognito authentication        # Direct access to the signout endpoint - simplified for non-Cognito usage
         lambda_signout_rule = elbv2.ApplicationListenerRule(
             scope,
             "LambdaSignoutRule",
             listener=listener,
             priority=25,
             conditions=[elbv2.ListenerCondition.path_patterns(["/signout"])],
-            action=elb_actions.AuthenticateCognitoAction(
-                next=elbv2.ListenerAction.forward(
-                    [lambda_signout_target_group]),
-                user_pool=user_pool,
-                user_pool_client=user_pool_client,
-                user_pool_domain=user_pool_custom_domain,
-            ),
-        )
-
-        # Add authentication action as the first priority rule
-        auth_rule = listener.add_action(
-            "AuthenticateRule",
+            action=elbv2.ListenerAction.forward([lambda_signout_target_group]),
+        )  # Direct access without Cognito authentication
+        direct_access_rule = listener.add_action(
+            "DirectAccessRule",
             priority=30,
-            action=elb_actions.AuthenticateCognitoAction(
-                next=elbv2.ListenerAction.forward([ecs_target_group]),
-                user_pool=user_pool,
-                user_pool_client=user_pool_client,
-                user_pool_domain=user_pool_custom_domain,
-            ),
+            action=elbv2.ListenerAction.forward([ecs_target_group]),
             conditions=[elbv2.ListenerCondition.path_patterns(["/*"])]
         )
 

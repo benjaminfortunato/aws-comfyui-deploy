@@ -79,6 +79,11 @@ When prompted, enter your AWS Access Key ID, Secret Access Key, and then the def
 3. Run `make`
 
 Depending on your custom_nodes and extenstions in the dockerfile, the deployment will take approx. 8-10 minutes to have ComfyUI ready
+
+> [!TIP]
+> For detailed deployment instructions and troubleshooting, see the [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md). If you encounter deployment issues, you can use the provided utility scripts:
+> - `cleanup_and_redeploy.ps1` - Cleans up failed resources and automatically redeploys
+> - `cleanup.ps1` - Cleans up failed resources without automatic redeployment
  
 ```
  ✅  ComfyUIStack
@@ -158,7 +163,7 @@ With our comprehensive Deploy Options, you have the power to craft a tailored so
 
 ### Delete deployments and cleanup resources
 
-For the sake of preventing data loss from accidental deletions and keeping the example as straightforward as possible, the deletion of the complete deployment and resources is semi-automated. To cleanup and remove everything you've deployed you need to do following:
+For the sake of preventing data loss from accidental deletions and keeping the example as straightforward as possible, the deletion of the complete deployment and resources is semi-automated. You can use the provided helper scripts (`cleanup.ps1` or `cleanup_and_redeploy.ps1`) to clean up failed deployments. To completely cleanup and remove everything you've deployed, follow these steps:
 
 1. Delete the Auto Scaling Group manually:
 - Login to your AWS console

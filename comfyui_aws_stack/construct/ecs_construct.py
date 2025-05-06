@@ -123,11 +123,9 @@ class EcsConstruct(Construct):
                 timeout=Duration.seconds(10),
                 retries=8,
                 start_period=Duration.seconds(30)
-            ),
-            environment={
+            ),            environment={
                 "AWS_REGION": region,
-                "COGNITO_USER_POOL_ID": user_pool.user_pool_id,
-                "COGNITO_CLIENT_ID": user_pool_client.user_pool_client_id,
+                # Cognito auth disabled to avoid deployment issues
                 # Add other env variables here
             }
         )
@@ -213,9 +211,8 @@ class EcsConstruct(Construct):
 
         NagSuppressions.add_resource_suppressions(
             [alb_security_group, service_security_group],
-            suppressions=[
-                {"id": "AwsSolutions-EC23",
-                 "reason": "The Security Group and ALB needs to allow 0.0.0.0/0 inbound access for the ALB to be publicly accessible. Additional security is provided via Cognito authentication."
+            suppressions=[                {"id": "AwsSolutions-EC23",
+                 "reason": "The Security Group and ALB needs to allow 0.0.0.0/0 inbound access for the ALB to be publicly accessible. Note: Cognito authentication is disabled, so you may want to add IP-based restrictions."
                  },
                 {"id": "AwsSolutions-ELB2",
                  "reason": "Adding access logs requires extra S3 bucket so removing it for sample purposes."},
