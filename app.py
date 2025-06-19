@@ -31,6 +31,8 @@ comfy_ui_stack = ComfyUIStack(
     # schedule_scale_up="0 8 * * 1-5",
     # schedule_scale_down="0 19 * * *",
     # allowed_sign_up_email_domains=["amazon.com"],
+    cheap_vpc=False,
+    use_spot=False
 )
 
 Aspects.of(app).add(AwsSolutionsChecks(verbose=False))
