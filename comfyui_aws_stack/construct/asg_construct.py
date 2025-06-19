@@ -55,9 +55,51 @@ class AsgConstruct(Construct):
         user_data_script = ec2.UserData.for_linux()
         user_data_script.add_commands("""
             #!/bin/bash
-            REGION=$(curl -s http://169.254.169.254/latest/meta-data/placement/region) 
-            docker plugin install public.ecr.aws/j1l5j1d1/rexray-ebs --grant-all-permissions REXRAY_PREEMPT=true EBS_REGION=$REGION
+            # Log everything for debugging
+            exec > /var/log/user-data.log 2>&1
+            set -x
+
+            # Set ECS config
+            echo "ECS_CLUSTER=ComfyUIStack-ComfyUICluster7DD9BFB5-FKpLqcaeIJCE" >> /etc/ecs/ecs.config
+            echo "ECS_AWSVPC_BLOCK_IMDS=true" >> /etc/ecs/ecs.config
+
+            # Get region dynamically
+            REGION=$(curl -s http://169.254.169.254/latest/meta-data/placement/region)
+
+            # Install and start SSM Agent
+            yum install -y amazon-ssm-agent
+            systemctl enable amazon-ssm-agent
+            systemctl start amazon-ssm-agent
+
+            # Install rexray plugin
+            docker plugin install public.ecr.aws/j1l5j1d1/rexray-ebs \
+            --grant-all-permissions \
+            REXRAY_PREEMPT=true \
+            EBS_REGION=$REGION
+
+            # Restart Docker
             systemctl restart docker
+
+            # Block IMDS from containers
+            iptables --insert FORWARD 1 --in-interface docker+ --destination 169.254.169.254/32 --jump DROP
+            service iptables save
+
+            # ------------------------------
+            # Add 'admin' user with password
+            # ------------------------------
+            useradd admin
+            echo "admin:admin" | chpasswd
+
+            # Grant admin user passwordless sudo
+            echo "admin ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/90-admin
+            chmod 440 /etc/sudoers.d/90-admin
+
+            # ------------------------------
+            # Enable SSH Password Authentication
+            # ------------------------------
+            sed -i 's/^PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
+            sed -i 's/^#PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
+            systemctl restart sshd
         """)
 
         # Create an Auto Scaling Group with two EBS volumes
