@@ -32,7 +32,7 @@ This sample repository provides a seamless and cost-effective solution to deploy
 - **[Amazon ECR](https://docs.aws.amazon.com/AmazonECR/latest/userguide/what-is-ecr.html)** - Holds the ComfyUI Docker image
 - **[CloudWatch Log Group](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/Working-with-log-groups-and-streams.html)** - Stores logs from the ECS task
 - **[Amazon Cognito](https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-identity-pools.html)** - User directory for having authentication in front of the ALB
-- **[AWS WAF](https://docs.aws.amazon.com/waf/latest/developerguide/waf-chapter.html)** - Block access by IP
+- **[AWS WAF](https://docs.aws.amazon.com/waf/latest/developerguide/waf-chapter.html)** - Block access by IP and rate limiting for DDoS protection
 - **[AWS Lambda](https://docs.aws.amazon.com/lambda/)** - To manage ComfyUI state
 
 ## Getting Started
@@ -79,11 +79,6 @@ When prompted, enter your AWS Access Key ID, Secret Access Key, and then the def
 3. Run `make`
 
 Depending on your custom_nodes and extenstions in the dockerfile, the deployment will take approx. 8-10 minutes to have ComfyUI ready
-
-> [!TIP]
-> For detailed deployment instructions and troubleshooting, see the [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md). If you encounter deployment issues, you can use the provided utility scripts:
-> - `cleanup_and_redeploy.ps1` - Cleans up failed resources and automatically redeploys
-> - `cleanup.ps1` - Cleans up failed resources without automatic redeployment
  
 ```
  ✅  ComfyUIStack
@@ -152,18 +147,21 @@ With our comprehensive Deploy Options, you have the power to craft a tailored so
     - [Restrict the email address domains that can sign up](docs/DEPLOY_OPTION.md#restrict-the-email-address-domains-that-can-sign-up)
     - [Enable AWS WAF restrictions](docs/DEPLOY_OPTION.md#enable-aws-waf-restrictions)
         - [IP address restrictions](docs/DEPLOY_OPTION.md#ip-address-restrictions)
+        - [Rate limiting](docs/DEPLOY_OPTION.md#rate-limiting)
     - [SAML Authentication](docs/DEPLOY_OPTION.md#saml-authentication)
 - [Cost-related Settings](docs/DEPLOY_OPTION.md#cost-related-settings)
     - [Spot Instance](docs/DEPLOY_OPTION.md#spot-instance)
     - [Scale Down automatically / on schedule](docs/DEPLOY_OPTION.md#scale-down-automatically--on-schedule)
     - [Use NAT Insatnce instead of NAT Gateway](docs/DEPLOY_OPTION.md#use-nat-insatnce-instead-of-nat-gateway)
+- [Monitoring and Notifications](docs/DEPLOY_OPTION.md#monitoring-and-notifications)
+    - [Slack Integration](docs/DEPLOY_OPTION.md#slack-integration)
 - [Using a Custom Domain](docs/DEPLOY_OPTION.md#using-a-custom-domain)
 
 
 
 ### Delete deployments and cleanup resources
 
-For the sake of preventing data loss from accidental deletions and keeping the example as straightforward as possible, the deletion of the complete deployment and resources is semi-automated. You can use the provided helper scripts (`cleanup.ps1` or `cleanup_and_redeploy.ps1`) to clean up failed deployments. To completely cleanup and remove everything you've deployed, follow these steps:
+For the sake of preventing data loss from accidental deletions and keeping the example as straightforward as possible, the deletion of the complete deployment and resources is semi-automated. To cleanup and remove everything you've deployed you need to do following:
 
 1. Delete the Auto Scaling Group manually:
 - Login to your AWS console

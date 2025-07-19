@@ -146,9 +146,10 @@ class AdminConstruct(Construct):
             environment={
                 "ASG_NAME": auto_scaling_group.auto_scaling_group_name,
                 "ECS_CLUSTER_NAME": cluster.cluster_name,
-                "ECS_SERVICE_NAME": service.service_name            }
+                "ECS_SERVICE_NAME": service.service_name
+            }
         )
-        
+
         signout_lambda = lambda_.Function(
             scope,
             "SignoutFunction",
@@ -159,8 +160,7 @@ class AdminConstruct(Construct):
                 "./comfyui_aws_stack/lambda/admin_lambda"),
             timeout=Duration.seconds(amount=60),
             environment={
-                # If user_pool_logout_url is empty or None, default to root path '/'
-                "REDIRECT_URL": user_pool_logout_url if user_pool_logout_url else "/"
+                "REDIRECT_URL": user_pool_logout_url
             }
         )
 
